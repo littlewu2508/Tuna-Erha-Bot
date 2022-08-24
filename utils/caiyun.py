@@ -1,9 +1,8 @@
 import json
 import traceback
-from telegram.error import BadRequest
 
 from utils.log import logger
-from utils.config import config, owner, group, channel
+from utils.config import config
 from utils.format import escaped
 from utils.crawler import request
 
@@ -291,21 +290,20 @@ def daily_weather(dayornight):
             ('现挂预警信号：{}\n'.format(' '.join(alert_now())) if alert_now() != [] else '')
 
 
-def realtime_report(bot, text):
+def realtime_report(text):
     try:
         global realtime
         if realtime['newmsg']:
             try:
-                bot.delete_message(chat_id=group, message_id=realtime['msgid'])
+                print("a")
             except BadRequest as e:
                 logger.debug(e)
             realtime['text'] = text
-            realtime['msgid'] = bot.send_message(chat_id=group, text=text).message_id
+            print("b " + text)
             realtime['newmsg'] = False
         elif realtime['text'] != text:
             realtime['text'] = text
-            bot.edit_message_text(chat_id=group, text=text,
-                                message_id=realtime['msgid'])
+            print("c " + text)
         with open('data/realtime.json', 'w') as file:
             json.dump(realtime, file)
     except Exception as e:
@@ -313,18 +311,20 @@ def realtime_report(bot, text):
         logger.error(e)
 
 
-def forecast_rain(bot):
+def forecast_rain():
 
     assert caiyunData['result']['minutely']['status'] == 'ok'
 
     probability_2h = caiyunData['result']['minutely']['probability']
+    print(probability_2h)
     global rain_2h
     if max(probability_2h) < stop_probability and rain_2h == True:
         rain_2h = False
+        realtime_report('未来两小时内可能会stop。')
         logger.info('rain_2h T to F')
     if max(probability_2h) > start_probability and rain_2h == False:
         rain_2h = True
-        realtime_report(bot, '未来两小时内可能会下雨。')
+        realtime_report('未来两小时内可能会下雨。')
         logger.info('rain_2h F to T')
 
     global rain_60, rain_15, rain_0
@@ -341,10 +341,10 @@ def forecast_rain(bot):
         changed = True
 
     if changed:
-        realtime_report(bot, caiyunData['result']['forecast_keypoint'])
+        realtime_report(caiyunData['result']['forecast_keypoint'])
 
 
-def caiyun(context):
+def caiyun():
 
     global caiyunData, caiyunFailedCount
     print('https://api.caiyunapp.com/v2.5/{}/{},{}/weather.json?lang=zh_CN&alert=true'.format(config['CAIYUN']['token'], config['CAIYUN']['longitude'], config['CAIYUN']['latitude']))
@@ -366,13 +366,11 @@ def caiyun(context):
             logger.warning(f'Failed to get data from CaiYun. ({caiyunFailedCount})')
         return
 
-    forecast_rain(context.bot)
+    forecast_rain()
 
     if caiyunData['result']['alert']['status'] == 'ok':
         for each in caiyunData['result']['alert']['content']:
             if each['request_status'] == 'ok' and each['alertId'] not in alerts:
-                context.bot.send_message(chat_id=group,   text='*{}*\n\n{}'.format(
-                    escaped(each['title']), escaped(each['description'])), parse_mode='MarkdownV2')
-                context.bot.send_message(chat_id=channel, text='*{}*\n\n{}'.format(
-                    escaped(each['title']), escaped(each['description'])), parse_mode='MarkdownV2')
+                print("d " + '*{}*\n\n{}'.format(escaped(each['title'])))
+                print("e " + '*{}*\n\n{}'.format(escaped(each['title'])))
                 alerts[each['alertId']] = each
