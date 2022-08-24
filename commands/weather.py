@@ -11,7 +11,6 @@ matplotlib.use('Agg')
 import utils.caiyun as cy
 from utils.caiyun import deal_skycon, wind_direction, deal_precipitation, level_windspeed, alert_now
 from utils.log import logger
-from utils.pool import add_pool
 
 
 def precipitation_graph():
@@ -47,28 +46,25 @@ def precipitation_graph():
     return pic
 
 
-def forecast(update, context):
+def forecast():
 
-    logger.info('\\forecast {}'.format(update.message.chat_id))
+    logger.info('\\forecast {}'.format("0000"))
 
     pic = precipitation_graph()
-    msg = context.bot.send_photo(chat_id=update.message.chat_id, photo=open(
-        pic, 'rb'), caption=cy.caiyunData['result']['forecast_keypoint'])
-    add_pool(msg)
+    print(cy.caiyunData['result']['forecast_keypoint'])
     Path(pic).unlink()
 
 
-def forecast_hourly(update, context):
+def forecast_hourly():
 
-    logger.info('\\forecast_hourly {}'.format(update.message.chat_id))
+    logger.info('\\forecast_hourly {}'.format("0000"))
 
-    context.bot.send_message(chat_id=update.message.chat_id,
-                             text=cy.caiyunData['result']['hourly']['description'])
+    print(cy.caiyunData['result']['hourly']['description'])
 
 
-def weather(update, context):
+def weather():
 
-    logger.info('\\weather {}'.format(update.message.chat_id))
+    logger.info('\\weather {}'.format("0000"))
 
     assert cy.caiyunData['result']['realtime']['status'] == 'ok'
 
@@ -102,4 +98,4 @@ def weather(update, context):
     if alert_now() != []:
         text += '现挂预警信号：{}\n'.format(' '.join(alert_now()))
 
-    context.bot.send_message(chat_id=update.message.chat_id, text=text)
+    print(text)
