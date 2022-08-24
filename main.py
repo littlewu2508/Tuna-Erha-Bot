@@ -12,7 +12,7 @@ foo = Driver({
     for an example, see:
     https://vaelor.github.io/python-mattermost-driver/#authentication
     """
-    'url': 'selene.ga',
+    'url': 'localhost',
     'token': my_token.stdout.decode("utf-8").strip(),
 
     """
@@ -24,7 +24,7 @@ foo = Driver({
     verify to your CA file or to False. Please double check this if you have any errors while
     using a self signed certificate!
     """
-    'scheme': 'https',
+    'scheme': 'http',
     'port': 443,
     'basepath': '/mm/api/v4',
     'verify': False,  # Or /path/to/file.pem
@@ -104,16 +104,23 @@ See the API documentation for which events are available.
 
 # To upload a file you will need to pass a `files` dictionary
 channel_id = foo.channels.get_channel_by_name_and_team_name('totelegram', 'town-square')['id']
-# file_id = foo.files.upload_file(
-#     channel_id=channel_id,
-#     files={'files': (filename, open(filename, 'rb'))}
-# )['file_infos'][0]['id']
+file_id = foo.files.upload_file(
+    channel_id=channel_id,
+    files={'files': ("forecast.png", open("pic/1661335908.png", 'rb'))}
+)['file_infos'][0]['id']
 
 
 # track the file id and pass it in `create_post` options, to attach the file
 foo.posts.create_post(options={
     'channel_id': channel_id,
     'message': 'This is a test message'})
+
+
+# track the file id and pass it in `create_post` options, to attach the file
+foo.posts.create_post(options={
+    'channel_id': channel_id,
+    'message': 'This is the rain forecast at THU',
+    'file_ids': [file_id]})
 
 # # If needed, you can make custom requests by calling `make_request`
 # foo.client.make_request('post', '/endpoint', options=None, params=None, data=None, files=None, basepath=None)
