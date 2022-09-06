@@ -1,4 +1,3 @@
-
 import os
 import time
 import traceback
@@ -11,6 +10,7 @@ matplotlib.use('Agg')
 import utils.caiyun as cy
 from utils.caiyun import deal_skycon, wind_direction, deal_precipitation, level_windspeed, alert_now
 from utils.log import logger
+from utils.config import config
 
 
 def precipitation_graph():
@@ -78,7 +78,7 @@ def weather(driver, channel_id):
     assert cy.caiyunData['result']['realtime']['status'] == 'ok'
 
     text = ''
-    text += '清华当前天气：{}\n'.format(deal_skycon(
+    text += '{0}：{1}\n'.format(config["CAIYUN"]["name"], deal_skycon(
         cy.caiyunData['result']['realtime']['skycon']))
     text += '温度：{}℃\n'.format(cy.caiyunData['result']
                               ['realtime']['temperature'])
