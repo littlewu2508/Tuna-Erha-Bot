@@ -23,9 +23,9 @@ def precipitation_graph():
             os.makedirs('pic/')
 
         precipitation = cy.caiyunData['result']['minutely']['precipitation_2h']
-        plt.figure(figsize=(6,3))
+        plt.figure(figsize=(6, 3))
         plt.plot(np.arange(120), np.array(precipitation))
-        plt.ylim(bottom = 0)
+        plt.ylim(bottom=0)
         if plt.axis()[3] > 0.03:
             plt.hlines(0.03, 0, 120, colors='skyblue', linestyles='dashed')
         if plt.axis()[3] > 0.25:
@@ -46,23 +46,32 @@ def precipitation_graph():
     return pic
 
 
-def forecast():
+def forecast(driver, channel_id):
 
     logger.info('\\forecast {}'.format("0000"))
 
     pic = precipitation_graph()
-    print(cy.caiyunData['result']['forecast_keypoint'])
+    file_id = driver.files.upload_file(
+        channel_id=channel_id,
+        files={'files': ("forecast.png", open(pic, 'rb'))}
+    )['file_infos'][0]['id']
     Path(pic).unlink()
+    driver.posts.create_post(options={
+        'channel_id': channel_id,
+        'message': cy.caiyunData['result']['forecast_keypoint'],
+        'file_ids': [file_id]})
 
 
-def forecast_hourly():
+def forecast_hourly(driver, channel_id):
 
     logger.info('\\forecast_hourly {}'.format("0000"))
 
-    print(cy.caiyunData['result']['hourly']['description'])
+    driver.posts.create_post(options={
+        'channel_id': channel_id,
+        'message': cy.caiyunData['result']['hourly']['description']})
 
 
-def weather():
+def weather(driver, channel_id):
 
     logger.info('\\weather {}'.format("0000"))
 
@@ -98,4 +107,6 @@ def weather():
     if alert_now() != []:
         text += '现挂预警信号：{}\n'.format(' '.join(alert_now()))
 
-    print(text)
+    driver.posts.create_post(options={
+        'channel_id': channel_id,
+        'message': text})

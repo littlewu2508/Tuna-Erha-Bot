@@ -1,5 +1,8 @@
 import subprocess
 from mattermostdriver import Driver
+from commands.weather import forecast_hourly, weather, forecast
+from utils.caiyun import caiyun
+caiyun()
 my_token = subprocess.run(['cat' , '/data/wuyy/matterbridge_token'], stdout=subprocess.PIPE)
 
 foo = Driver({
@@ -20,18 +23,20 @@ foo = Driver({
 
 foo.login()
 
+
 channel_id = foo.channels.get_channel_by_name_and_team_name('totelegram', 'town-square')['id']
-file_id = foo.files.upload_file(
-    channel_id=channel_id,
-    files={'files': ("forecast.png", open("pic/1661335908.png", 'rb'))}
-)['file_infos'][0]['id']
 
+
+caiyun()
 
 foo.posts.create_post(options={
     'channel_id': channel_id,
-    'message': 'This is a test message'})
+    'message': '====== start forecasting ======'})
+
+forecast_hourly(foo, channel_id)
+weather(foo, channel_id)
+forecast(foo, channel_id)
 
 foo.posts.create_post(options={
     'channel_id': channel_id,
-    'message': 'This is the rain forecast at THU',
-    'file_ids': [file_id]})
+    'message': '====== end forecasting ======'})
